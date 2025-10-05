@@ -23,7 +23,7 @@ In most organizations, employee feedback is collected manually through surveys o
 - **Looker Studio Dashboard:** [Click Here](https://lookerstudio.google.com/reporting/9af441fa-fbd1-4e6a-935d-2c725ce751f1)  
 - **Lucidchart Flowchart:** [Click Here](https://lucid.app/lucidchart/ad545e08-58bb-4f96-93aa-32ea4731c07b/edit?viewport_loc=-811%2C-292%2C3948%2C1666%2C0_0&invitationId=inv_02101f67-7e41-4b0f-a6f0-b70310e7e314)  
 - **Project Walkthrough Video (Loom):** [Click Here](https://www.loom.com/share/6bb5535eb18e49fa9c9ec26b51a37647?sid=95cb11f2-52ae-4532-bfe5-c518a6d8945e)
-
+- **Hugging Face Model Link:** [Click Here](https://huggingface.co/cardiffnlp/twitter-roberta-base-sentiment-latest)
 ---
 
 ## Flowchart
@@ -47,8 +47,8 @@ In most organizations, employee feedback is collected manually through surveys o
 
 ## Author
 **Ashutosh Sahoo**  
-Computer Science and Engineering 
+Computer Science and Engineering , 
 Specialization - Data Science and Analytics | IIIT Nagpur  
-[Email](mailto:sahooashutosh792@gmail.com)
+Email - sahooashutosh792@gmail.com
 
 
