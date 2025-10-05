@@ -1,0 +1,144 @@
+function analyzeSentiment() {    // Connects to Hugging face NLP Model to assign Positive / Neutral / Negative Sentiment.
+  var apiKey = "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";  // your Hugging Face read token
+  var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+  var lastRow = sheet.getLastRow();
+
+  var q2 = sheet.getRange(lastRow, 3).getValue();
+  var q3 = sheet.getRange(lastRow, 4).getValue();
+  var q4 = sheet.getRange(lastRow, 5).getValue();
+  var sentimentCol = 7;
+
+  var text = q2 + " " + q3 + " " + q4;
+
+  var url = "https://api-inference.huggingface.co/models/cardiffnlp/twitter-roberta-base-sentiment-latest";
+
+  var options = {
+    "method": "post",
+    "headers": {
+      "Authorization": "Bearer " + apiKey,
+      "Content-Type": "application/json"
+    },
+    "payload": JSON.stringify({ "inputs": text }),
+    "muteHttpExceptions": true
+  };
+
+  var response = UrlFetchApp.fetch(url, options);
+  var raw = response.getContentText();
+  Logger.log("Raw Response: " + raw);
+
+  try {
+    var result = JSON.parse(raw);
+
+    if (Array.isArray(result) && result[0]) {
+      var posScore = result[0].find(x => x.label === "positive").score;
+      var negScore = result[0].find(x => x.label === "negative").score;
+
+      var label;
+
+      if (posScore >= 0.8) {
+        label = "POSITIVE";
+      } else if (negScore >= 0.3) {
+        label = "NEGATIVE";
+      } else {
+        label = "NEUTRAL";
+      }
+
+      sheet.getRange(lastRow, sentimentCol).setValue(label);
+    } else {
+      sheet.getRange(lastRow, sentimentCol).setValue("Error parsing: " + raw);
+    }
+  } catch (e) {
+    sheet.getRange(lastRow, sentimentCol).setValue("Error: " + e.message);
+  }
+}
+
+
+
+/**
+ * assignWeekBlocks()
+ * Assigns "Week" to each response row in "Form Responses 1" based on 10-row blocks:
+ * rows 2-11 => Week 1, rows 12-21 => Week 2, etc.
+ *
+ *  "Form Responses 1".
+ */
+function assignWeekBlocks() {
+  var SHEET_NAME = "Form Responses 1"; // <-- change if your tab name is different
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sheet = ss.getSheetByName(SHEET_NAME);
+  if (!sheet) {
+    SpreadsheetApp.getUi().alert("Sheet not found: " + SHEET_NAME);
+    return;
+  }
+
+  var lastRow = sheet.getLastRow();
+  var lastCol = sheet.getLastColumn();
+  if (lastRow < 2) return; // no responses yet
+
+  // Read header row
+  var headers = sheet.getRange(1, 1, 1, lastCol).getValues()[0];
+
+  // Find or create Week column
+  function getOrCreateCol(name) {
+    var idx = headers.indexOf(name);
+    if (idx !== -1) return idx + 1;
+    // append at end
+    lastCol++;
+    sheet.getRange(1, lastCol).setValue(name);
+    headers.push(name);
+    return lastCol;
+  }
+
+  var weekCol = getOrCreateCol("Week");
+
+  // Read data rows
+  var data = sheet.getRange(2, 1, lastRow - 1, lastCol).getValues();
+  var weeks = [];
+
+  for (var i = 0; i < data.length; i++) {
+    var responseIndex = i + 1; // first response = 1
+    var weekNum = Math.ceil(responseIndex / 10);
+    weeks.push([weekNum]);
+  }
+
+  // Write results back
+  sheet.getRange(2, weekCol, weeks.length, 1).setValues(weeks);
+}
+
+
+
+
+
+
+
+function sendReportToHR() {
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Form Responses 1"); // or your response sheet name
+  const hrEmail = "sahooashutosh792@gmail.com"; // 🔁 change to HR email
+  const totalRows = sheet.getLastRow() - 1; // excluding header
+  const weekNumber = Math.ceil(totalRows / 10); // e.g., 1–10 = week 1, 11–20 = week 2
+
+  // Only send email if total responses is a multiple of 10
+  if (totalRows % 10 === 0 && totalRows > 0) {
+    const reportLink = "https://lookerstudio.google.com/reporting/9af441fa-fbd1-4e6a-935d-2c725ce751f1"; // 🔁 paste your Looker dashboard link
+
+    const subject = `Employee Sentiment Report - Week ${weekNumber}`;
+    const body = `
+Hi HR Team,
+
+The employee sentiment report for Week ${weekNumber} is now ready.
+
+📊 View the updated dashboard here:
+${reportLink}
+
+Total responses received so far: 10
+
+Please refresh the dashboard after opening to see the latest data.
+
+Regards,  
+Automated Sentiment System
+    `;
+
+    MailApp.sendEmail(hrEmail, subject, body);
+  }
+}
+
+
